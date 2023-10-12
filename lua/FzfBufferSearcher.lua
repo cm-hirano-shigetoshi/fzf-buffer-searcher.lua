@@ -50,8 +50,8 @@ end
 
 local function execute_fzf(dirname)
     coroutine.wrap(function(dirname)
-        local result = fzf.fzf("(cd " .. dirname .. " && rg -L -n ^)",
-            "--reverse --delimiter : --with-nth 2..")
+        local result = fzf.fzf("(cd " .. dirname .. " && rg --color always -L -n ^)",
+            "--ansi --reverse --delimiter : --with-nth 2..")
         if result then
             local sp = split(result[1], ":")
             vim.api.nvim_set_current_buf(tonumber(sp[1]))
