@@ -29,29 +29,33 @@ end
 
 local function dump_buffers(dirname)
     os.execute("rm -fr " .. dirname)
-    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    for buf = 1, vim.fn.bufnr("$") do
         local buf_name = get_buf_name(buf)
         if buf_name then
             local filepath = dirname .. "/" .. buf .. ":" .. buf_name
             os.execute("mkdir -p " .. filepath:match("(.*/)"))
-            local file = io.open(filepath, "w")
-            local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-            for _, line in ipairs(lines) do
-                file:write(line .. "\n")
+            if vim.api.nvim_buf_is_loaded(buf) then
+                local file = io.open(filepath, "w")
+                local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+                for _, line in ipairs(lines) do
+                    file:write(line .. "\n")
+                end
+                file:close()
+            else
+                os.execute("ln -s " .. vim.api.nvim_buf_get_name(buf) .. " " .. filepath)
             end
-            file:close()
         end
     end
 end
 
 local function execute_fzf(dirname)
     coroutine.wrap(function(dirname)
-        local result = fzf.fzf("(cd " .. dirname .. " && rg -n ^)", "--reverse --delimiter : --with-nth 2..")
-        -- result is a list of lines that fzf returns, if the user has chosen
+        local result = fzf.fzf("(cd " .. dirname .. " && rg -L -n ^)",
+            "--reverse --delimiter : --with-nth 2..")
         if result then
             local sp = split(result[1], ":")
             vim.api.nvim_set_current_buf(tonumber(sp[1]))
-            vim.api.nvim_win_set_cursor(0, { tonumber(sp[3]), 1 })
+            vim.api.nvim_win_set_cursor(0, { tonumber(sp[3]), 0 })
         end
         os.execute("rm -fr " .. dirname)
     end)(dirname)
