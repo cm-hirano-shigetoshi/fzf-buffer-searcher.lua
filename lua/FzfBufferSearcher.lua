@@ -51,7 +51,7 @@ end
 local function execute_fzf(dirname)
     coroutine.wrap(function(dirname)
         local result = fzf.fzf("(cd " .. dirname .. " && rg --color always -L -n ^)",
-            "--ansi --reverse --delimiter : --with-nth 2..")
+            "--ansi --reverse --delimiter : --with-nth 2.. --preview 'bat --plain --number --color always --highlight-line {3} {2}' --preview-window 'down:60%' --preview-window '+{3}+1/2'")
         if result then
             local sp = split(result[1], ":")
             vim.api.nvim_set_current_buf(tonumber(sp[1]))
