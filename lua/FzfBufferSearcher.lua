@@ -35,7 +35,7 @@ local function dump_buffers(dirname)
             local filepath = dirname .. "/" .. buf .. ":" .. buf_name
             os.execute("mkdir -p " .. filepath:match("(.*/)"))
             if vim.api.nvim_buf_is_loaded(buf) then
-                local file = io.open(filepath, "w")
+                local file = assert(io.open(filepath, "w"))
                 local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
                 for _, line in ipairs(lines) do
                     file:write(line .. "\n")
@@ -48,7 +48,7 @@ local function dump_buffers(dirname)
     end
 end
 
-local function execute_fzf(dirname)
+local function execute_fzf(dirname_)
     coroutine.wrap(function(dirname)
         local result = fzf.fzf("(cd " .. dirname .. " && rg --color always -L -n ^)",
             "--ansi --reverse --delimiter : --with-nth 2.. --preview 'bat --plain --number --color always --highlight-line {3} {2}' --preview-window 'down:60%' --preview-window '+{3}+1/2'")
@@ -58,7 +58,7 @@ local function execute_fzf(dirname)
             vim.api.nvim_win_set_cursor(0, { tonumber(sp[3]), 0 })
         end
         os.execute("rm -fr " .. dirname)
-    end)(dirname)
+    end)(dirname_)
 end
 
 M.run = function()
