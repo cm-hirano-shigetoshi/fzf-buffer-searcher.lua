@@ -48,23 +48,29 @@ local function dump_buffers(dirname)
     end
 end
 
-local function execute_fzf(dirname_)
-    coroutine.wrap(function(dirname)
+local function execute_fzf(dirname_, query_)
+    coroutine.wrap(function(dirname, query)
         local result = fzf.fzf("(cd " .. dirname .. " && rg --color always -L -n ^)",
-            "--ansi --reverse --delimiter : --with-nth 2.. --preview 'bat --plain --number --color always --highlight-line {3} {2}' --preview-window 'down:60%' --preview-window '+{3}+1/2'")
+            "--ansi --reverse --delimiter : --with-nth 2.. --query '" ..
+            query ..
+            " ' --preview 'bat --plain --number --color always --highlight-line {3} {2}' --preview-window 'down:60%' --preview-window '+{3}+1/2'")
         if result then
             local sp = split(result[1], ":")
             vim.api.nvim_set_current_buf(tonumber(sp[1]))
             vim.api.nvim_win_set_cursor(0, { tonumber(sp[3]), 0 })
         end
         os.execute("rm -fr " .. dirname)
-    end)(dirname_)
+    end)(dirname_, query_)
 end
 
-M.run = function()
+local function call(query)
     local tmpdir = os.tmpname()
     dump_buffers(tmpdir)
-    execute_fzf(tmpdir)
+    execute_fzf(tmpdir, query)
+end
+
+M.run = function(query)
+    call(query)
 end
 
 return M
