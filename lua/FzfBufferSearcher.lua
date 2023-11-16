@@ -30,19 +30,21 @@ end
 local function dump_buffers(dirname)
     os.execute("rm -fr " .. dirname)
     for buf = 1, vim.fn.bufnr("$") do
-        local buf_name = get_buf_name(buf)
-        if buf_name then
-            local filepath = dirname .. "/" .. buf .. ":" .. buf_name
-            os.execute("mkdir -p " .. filepath:match("(.*/)"))
-            if vim.api.nvim_buf_is_loaded(buf) then
-                local file = assert(io.open(filepath, "w"))
-                local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-                for _, line in ipairs(lines) do
-                    file:write(line .. "\n")
+        if vim.api.nvim_buf_is_valid(buf) then
+            local buf_name = get_buf_name(buf)
+            if buf_name then
+                local filepath = dirname .. "/" .. buf .. ":" .. buf_name
+                os.execute("mkdir -p " .. filepath:match("(.*/)"))
+                if vim.api.nvim_buf_is_loaded(buf) then
+                    local file = assert(io.open(filepath, "w"))
+                    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+                    for _, line in ipairs(lines) do
+                        file:write(line .. "\n")
+                    end
+                    file:close()
+                else
+                    os.execute("ln -s " .. vim.api.nvim_buf_get_name(buf) .. " " .. filepath)
                 end
-                file:close()
-            else
-                os.execute("ln -s " .. vim.api.nvim_buf_get_name(buf) .. " " .. filepath)
             end
         end
     end
